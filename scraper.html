@@ -224,6 +224,7 @@
     <div class="controls actions" style="gap:12px; flex-wrap:wrap;">
       <button id="searchButton">Search</button>
       <div id="statusText" style="font-size: 14px; display:inline-block;"></div>
+      <div id="lastUpdated" style="font-size: 14px; color: var(--muted);"></div>
     </div>
 
     <div class="table-wrap">
@@ -257,6 +258,17 @@
 
     function setStatus(text) {
       document.getElementById("statusText").textContent = text || "";
+    }
+
+    function setLastUpdated(ts, wikis) {
+      const el = document.getElementById("lastUpdated");
+      if (!ts) {
+        el.textContent = "";
+        return;
+      }
+      const date = new Date(ts * 1000);
+      const wikiLabel = wikis && wikis.length ? ` (${wikis.join(", ")})` : "";
+      el.textContent = `Last updated: ${date.toLocaleString()}${wikiLabel}`;
     }
 
     async function loadCacheForShard(shard) {
@@ -413,8 +425,14 @@
           allRounds = allRounds.concat(rounds.map((r) => ({ ...r, wiki })));
         });
 
+        const latestBuiltAt = caches
+          .map((cache) => cache.meta && cache.meta.built_at)
+          .filter(Boolean)
+          .reduce((max, ts) => Math.max(max, ts), 0);
+
         const results = filterRounds(query, allRounds, { sideFilters, openSourceOnly });
         renderResults(results);
+        setLastUpdated(latestBuiltAt, selectedWikis);
       } catch {
         return; // Status already set in loadCacheOnce
       }
