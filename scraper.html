@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="UTF-8" />
-  <title>go bite win</title>
+  <title>🦈</title>
   <style>
     :root {
       --bg: #f7faf8;
@@ -48,6 +48,7 @@
       align-items: center;
       flex-wrap: wrap;
       margin-bottom: 6px;
+      row-gap: 10px;
     }
 
     .controls.actions {
@@ -135,6 +136,62 @@
       align-items: center;
     }
 
+    .historical-toggle {
+      font-size: 14px;
+      color: #fff;
+      margin-left: 4px;
+    }
+
+    .historical-container {
+      display: none;
+      width: 100%;
+      margin-top: 6px;
+    }
+
+    .header-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .help-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-weight: 600;
+      font-size: 12px;
+      cursor: default;
+      margin-left: 6px;
+      border: 1px solid var(--border);
+      position: relative;
+    }
+
+    .help-badge:hover::after {
+      content: attr(data-tip);
+      position: absolute;
+      top: 120%;
+      right: 0;
+      background: var(--card);
+      color: var(--text);
+      border: 1px solid var(--border);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+      padding: 8px 10px;
+      border-radius: 6px;
+      width: 260px;
+      font-size: 12px;
+      line-height: 1.4;
+      z-index: 10;
+      white-space: pre-line;
+      font-weight: 400;
+    }
+
     #statusText {
       color: var(--muted);
     }
@@ -201,7 +258,17 @@
 <body>
 
   <div class="shell">
-    <h1>go bite win</h1>
+    <div class="header-bar">
+      <h1 style="margin:0;">go bite win 🦈</h1>
+      <span
+        class="help-badge"
+        data-tip="You need to be logged in to opencaselist.com for downloading to work (you can log in in a separate tab).
+        
+        Search text is exact match against team/school/report/tournament."
+        aria-label="Troubleshooting"
+        role="img"
+      >?</span>
+    </div>
 
     <div class="controls" style="gap:12px; flex-wrap:wrap;">
       <input id="searchInput" type="text" placeholder="Search (filename, school, etc.)" />
@@ -220,6 +287,23 @@
         <button type="button" data-value="ndtceda25" class="active">NDT/CEDA</button>
         <button type="button" data-value="hsld25" class="active">LD</button>
       </div>
+      <button type="button" id="toggleHistoricalBtn" class="historical-toggle">Show historical wikis</button>
+    </div>
+    <div class="historical-container" id="historicalContainer">
+      <div class="toggle-group" id="historicalWikiButtons">
+        <span class="pill-label">Historical</span>
+        <button type="button" data-value="hspolicy24">HS Policy 24</button>
+        <button type="button" data-value="hspolicy23">HS Policy 23</button>
+        <button type="button" data-value="hspolicy22">HS Policy 22</button>
+        <button type="button" data-value="hspolicy21">HS Policy 21</button>
+        <button type="button" data-value="hspolicy20">HS Policy 20</button>
+        <button type="button" data-value="ndtceda24">NDT/CEDA 24</button>
+        <button type="button" data-value="ndtceda23">NDT/CEDA 23</button>
+        <button type="button" data-value="ndtceda22">NDT/CEDA 22</button>
+        <button type="button" data-value="ndtceda21">NDT/CEDA 21</button>
+        <button type="button" data-value="ndtceda20">NDT/CEDA 20</button>
+        <button type="button" data-value="hsld24">LD 24</button>
+      </div>
     </div>
     <div class="controls actions" style="gap:12px; flex-wrap:wrap;">
       <button id="searchButton">Search</button>
@@ -232,7 +316,7 @@
         <thead>
           <tr>
             <th>Team</th>
-            <th>School</th>
+            <th>Side</th>
             <th>Wiki</th>
             <th>File</th>
             <th>Open Source Link</th>
@@ -342,9 +426,10 @@
         teamCell.textContent = item.team || "";
         row.appendChild(teamCell);
 
-        const schoolCell = document.createElement("td");
-        schoolCell.textContent = item.school || "";
-        row.appendChild(schoolCell);
+        const sideCell = document.createElement("td");
+        const side = (item.side || "").toUpperCase();
+        sideCell.textContent = side === "A" ? "Aff" : side === "N" ? "Neg" : "";
+        row.appendChild(sideCell);
 
         const wikiCell = document.createElement("td");
         wikiCell.textContent = item.wiki || "";
@@ -402,7 +487,10 @@
 
     async function performSearch() {
       const query = document.getElementById("searchInput").value.trim();
-      const selectedWikis = getSelectedValues("wikiButtons");
+      const selectedWikis = [
+        ...getSelectedValues("wikiButtons"),
+        ...getSelectedValues("historicalWikiButtons"),
+      ];
       const sideFilters = getSelectedValues("sideButtons").map((s) => s.toUpperCase());
       const openSourceOnly = document.getElementById("openSourceOnly").checked;
 
@@ -441,6 +529,15 @@
     document.addEventListener("DOMContentLoaded", () => {
       setupToggleGroup("sideButtons", maybeAutoSearch);
       setupToggleGroup("wikiButtons", maybeAutoSearch);
+      setupToggleGroup("historicalWikiButtons", maybeAutoSearch);
+      document.getElementById("toggleHistoricalBtn").addEventListener("click", () => {
+        const container = document.getElementById("historicalContainer");
+        const isOpen = container.style.display === "block";
+        container.style.display = isOpen ? "none" : "block";
+        document.getElementById("toggleHistoricalBtn").textContent = isOpen
+          ? "Show historical wikis"
+          : "Hide historical wikis";
+      });
       document.getElementById("openSourceOnly").addEventListener("change", maybeAutoSearch);
       document.getElementById("searchButton").addEventListener("click", performSearch);
       document
