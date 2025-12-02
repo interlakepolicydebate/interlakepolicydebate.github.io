@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>card scraper</title>
+  <style>
+    :root {
+      --bg: #f7faf8;
+      --card: #ffffff;
+      --accent: #7ea7a6;
+      --accent-soft: #e8f1ef;
+      --text: #2f3640;
+      --muted: #6b7683;
+      --border: #e3e7ea;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+      margin: 0;
+      padding: 32px;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    .shell {
+      max-width: 960px;
+      margin: 0 auto;
+      background: var(--card);
+      padding: 28px 32px 36px;
+      border: 1px solid var(--border);
+      border-radius: 0;
+      box-shadow: none;
+    }
+
+    h1 {
+      font-size: 26px;
+      margin: 0 0 18px;
+      letter-spacing: 0.2px;
+    }
+
+    .controls {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-bottom: 6px;
+    }
+
+    .controls.actions {
+      margin-top: 10px;
+      justify-content: flex-start;
+    }
+
+    input[type="text"] {
+      padding: 10px 12px;
+      width: min(420px, 100%);
+      font-size: 16px;
+      border-radius: 0;
+      border: 1px solid var(--border);
+      background: #fdfefe;
+      color: var(--text);
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    select {
+      padding: 10px 12px;
+      font-size: 14px;
+      border: 1px solid var(--border);
+      background: #fdfefe;
+      color: var(--text);
+      border-radius: 0;
+      min-width: 120px;
+    }
+
+    input[type="text"]:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(126, 167, 166, 0.2);
+    }
+
+    button {
+      padding: 10px 16px;
+      font-size: 15px;
+      cursor: pointer;
+      margin-left: 2px;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 0;
+      box-shadow: none;
+      transition: transform 0.1s ease, opacity 0.15s ease;
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+      opacity: 0.95;
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    .toggle-group {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .toggle-group button {
+      background: #f2f6f5;
+      color: var(--muted);
+      border: 1px solid #cfd8d5;
+      padding: 9px 12px;
+      font-size: 14px;
+      transition: background 0.12s ease, color 0.12s ease, border-color 0.12s ease, box-shadow 0.12s ease;
+    }
+
+    .toggle-group button.active {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(126, 167, 166, 0.25);
+    }
+
+    .pill-label {
+      font-size: 14px;
+      color: var(--muted);
+      margin-right: 6px;
+      display: inline-flex;
+      align-items: center;
+    }
+
+    #statusText {
+      color: var(--muted);
+    }
+
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin-top: 24px;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 0;
+      overflow: hidden;
+      box-shadow: none;
+    }
+
+    .table-wrap {
+      width: 100%;
+      overflow-x: auto;
+    }
+
+    th, td {
+      border-bottom: 1px solid var(--border);
+      padding: 12px 12px;
+      text-align: left;
+      font-size: 14px;
+      vertical-align: top;
+    }
+
+    th {
+      background: var(--accent-soft);
+      color: #3f5150;
+      letter-spacing: 0.4px;
+      font-size: 13px;
+      text-transform: uppercase;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    tbody tr:hover {
+      background: #f7fbfa;
+    }
+
+    a {
+      color: var(--accent);
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    .round_report {
+      color: var(--muted);
+      line-height: 1.45;
+      white-space: normal;
+      word-break: break-word;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="shell">
+    <h1>go bite win</h1>
+
+    <div class="controls" style="gap:12px; flex-wrap:wrap;">
+      <input id="searchInput" type="text" placeholder="Search (filename, school, etc.)" />
+      <div class="toggle-group" id="sideButtons">
+        <span class="pill-label">Side</span>
+        <button type="button" data-value="A" class="active">Aff (A)</button>
+        <button type="button" data-value="N" class="active">Neg (N)</button>
+      </div>
+      <label style="font-size:14px; color:var(--muted); display:flex; align-items:center; gap:6px;">
+        <input type="checkbox" id="openSourceOnly" />
+        Open source only
+      </label>
+      <div class="toggle-group" id="wikiButtons">
+        <span class="pill-label">Wiki</span>
+        <button type="button" data-value="hspolicy25" class="active">HS Policy</button>
+        <button type="button" data-value="ndtceda25" class="active">NDT/CEDA</button>
+        <button type="button" data-value="hsld25" class="active">LD</button>
+      </div>
+    </div>
+    <div class="controls actions" style="gap:12px; flex-wrap:wrap;">
+      <button id="searchButton">Search</button>
+      <div id="statusText" style="font-size: 14px; display:inline-block;"></div>
+    </div>
+
+    <div class="table-wrap">
+      <table id="resultsTable" style="display:none;">
+        <thead>
+          <tr>
+            <th>Team</th>
+            <th>School</th>
+            <th>Wiki</th>
+            <th>File</th>
+            <th>Open Source Link</th>
+            <th>Round Report</th>
+          </tr>
+        </thead>
+        <tbody id="resultsBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    const CACHE_URLS = (shard) => [
+      `caches/round_cache_${shard}.json`, // shard-specific in caches/ next to page
+      `/caches/round_cache_${shard}.json`, // shard-specific in caches/ at root
+      `round_cache_${shard}.json`, // shard-specific next to page
+      `round_cache.json`, // default next to page
+      `/round_cache_${shard}.json`, // shard-specific at root
+      `/round_cache.json`, // default at root
+    ];
+
+    const cacheByShard = {};
+
+    function setStatus(text) {
+      document.getElementById("statusText").textContent = text || "";
+    }
+
+    async function loadCacheForShard(shard) {
+      if (cacheByShard[shard]) return cacheByShard[shard];
+      setStatus(`Loading cached rounds (${shard})…`);
+
+      let lastError = null;
+      for (const url of CACHE_URLS(shard)) {
+        try {
+          const resp = await fetch(url, { cache: "no-cache" });
+          if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+          const data = await resp.json();
+          const rounds = data.rounds || [];
+          cacheByShard[shard] = { rounds, meta: { ...data, shard } };
+          setStatus(`Loaded ${rounds.length} rounds (${shard})`);
+          return cacheByShard[shard];
+        } catch (err) {
+          lastError = err;
+        }
+      }
+
+      setStatus(`Error loading cache: ${lastError ? lastError.message : "unknown"}`);
+      throw lastError || new Error("Failed to load cache");
+    }
+
+    function filterRounds(query, rounds, { sideFilters, openSourceOnly }) {
+      const q = query.toLowerCase();
+      return rounds.filter((r) => {
+        const report = (r.report || "").toLowerCase();
+        const team = (r.team || "").toLowerCase();
+        const school = (r.school || "").toLowerCase();
+        const tournament = (r.tournament || "").toLowerCase();
+        const sideUpper = (r.side || "").toUpperCase();
+        const sideOk = !sideFilters.length || sideFilters.includes(sideUpper);
+        const hasOpenSource = !!r.file_url;
+        const openSourceOk = !openSourceOnly || hasOpenSource;
+
+        const textMatch =
+          report.includes(q) ||
+          team.includes(q) ||
+          school.includes(q) ||
+          tournament.includes(q);
+
+        return sideOk && openSourceOk && textMatch;
+      });
+    }
+
+    function renderResults(items) {
+      const table = document.getElementById("resultsTable");
+      const body = document.getElementById("resultsBody");
+      body.innerHTML = "";
+
+      if (!items.length) {
+        table.style.display = "none";
+        setStatus("No matches found");
+        return;
+      }
+
+      items.forEach((item) => {
+        const row = document.createElement("tr");
+        // Normalize download path for direct API download; if missing, leave as null.
+        const downloadPath =
+          item.download_path ||
+          (item.file_url && item.file_url.replace(/^\/?files\//, "")) ||
+          null;
+        const linkHref = downloadPath
+          ? `https://api.opencaselist.com/v1/download?path=${encodeURIComponent(downloadPath)}`
+          : null;
+
+        const teamCell = document.createElement("td");
+        teamCell.textContent = item.team || "";
+        row.appendChild(teamCell);
+
+        const schoolCell = document.createElement("td");
+        schoolCell.textContent = item.school || "";
+        row.appendChild(schoolCell);
+
+        const wikiCell = document.createElement("td");
+        wikiCell.textContent = item.wiki || "";
+        row.appendChild(wikiCell);
+
+        const fileCell = document.createElement("td");
+        fileCell.textContent = item.tournament || "";
+        row.appendChild(fileCell);
+
+        const linkCell = document.createElement("td");
+        if (linkHref) {
+          const a = document.createElement("a");
+          a.href = linkHref;
+          a.target = "_blank";
+          a.textContent = "Open Source";
+          linkCell.appendChild(a);
+        } else {
+          linkCell.textContent = "N/A";
+        }
+        row.appendChild(linkCell);
+
+        const snippetCell = document.createElement("td");
+        snippetCell.className = "round_report";
+        snippetCell.textContent = item.report || "";
+        row.appendChild(snippetCell);
+
+        body.appendChild(row);
+      });
+
+      table.style.display = "table";
+      setStatus(`Found ${items.length} matches`);
+    }
+
+    function getSelectedValues(groupId) {
+      const buttons = Array.from(document.querySelectorAll(`#${groupId} button`));
+      return buttons.filter((btn) => btn.classList.contains("active")).map((btn) => btn.dataset.value);
+    }
+
+    function setupToggleGroup(groupId, onChange) {
+      const buttons = Array.from(document.querySelectorAll(`#${groupId} button`));
+      buttons.forEach((btn) => {
+        btn.addEventListener("click", () => {
+          btn.classList.toggle("active");
+          if (onChange) onChange();
+        });
+      });
+    }
+
+    function maybeAutoSearch() {
+      const query = document.getElementById("searchInput").value.trim();
+      if (query) {
+        performSearch();
+      }
+    }
+
+    async function performSearch() {
+      const query = document.getElementById("searchInput").value.trim();
+      const selectedWikis = getSelectedValues("wikiButtons");
+      const sideFilters = getSelectedValues("sideButtons").map((s) => s.toUpperCase());
+      const openSourceOnly = document.getElementById("openSourceOnly").checked;
+
+      if (!query) {
+        setStatus("Enter a search term to begin");
+        return;
+      }
+
+      if (!selectedWikis.length) {
+        setStatus("Select at least one wiki");
+        return;
+      }
+
+      try {
+        const caches = await Promise.all(selectedWikis.map((wiki) => loadCacheForShard(wiki)));
+        let allRounds = [];
+        caches.forEach((cache, idx) => {
+          const wiki = selectedWikis[idx];
+          const rounds = cache.rounds || [];
+          allRounds = allRounds.concat(rounds.map((r) => ({ ...r, wiki })));
+        });
+
+        const results = filterRounds(query, allRounds, { sideFilters, openSourceOnly });
+        renderResults(results);
+      } catch {
+        return; // Status already set in loadCacheOnce
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      setupToggleGroup("sideButtons", maybeAutoSearch);
+      setupToggleGroup("wikiButtons", maybeAutoSearch);
+      document.getElementById("openSourceOnly").addEventListener("change", maybeAutoSearch);
+      document.getElementById("searchButton").addEventListener("click", performSearch);
+      document
+        .getElementById("searchInput")
+        .addEventListener("keydown", (evt) => {
+          if (evt.key === "Enter") {
+            performSearch();
+          }
+        });
+    });
+  </script>
+
+</body>
+</html>
