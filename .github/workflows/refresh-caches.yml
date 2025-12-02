@@ -11,7 +11,7 @@ permissions:
 jobs:
   refresh:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 60
     env:
       OC_USERNAME: ${{ secrets.OC_USERNAME }}
       OC_PASSWORD: ${{ secrets.OC_PASSWORD }}
